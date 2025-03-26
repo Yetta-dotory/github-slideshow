@@ -1,13 +1,46 @@
----
-layout: presentation
----
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>사고 사례 조회</title>
+</head>
+<body>
+  <div id="result">불러오는 중...</div>
 
-{% for post in site.posts reversed %}
-	{% include slide.html %}
-	<div class="page-break"></div>
-{% endfor %}
-{% unless site.simple-slideshow %}
-{% if site.overview %}
-<section id="overview" class="step" {% for attr in site.overview-data %} data-{{attr[0]}}="{{attr[1]}}"{% endfor %}></section>
-{% endif %}
-{% endunless %}
+  <script>
+    const serviceKey = yZH75V1JgXIGtA2lFIRyhgXNvSDxBsBRY8jCXSivfo0zHUtA29GNCXNwx6dZ9A5tOJTkN3ZIyAwQTwknzdGqfg==; // 반드시 URL 인코딩된 값 사용
+    const apiUrl = `https://apis.data.go.kr/B552873/getDisasterInfo/getDisasterInfo?serviceKey=${serviceKey}&pageNo=1&numOfRows=5&resultType=json`;
+
+    fetch(apiUrl)
+      .then(response => response.json())
+      .then(data => {
+        const items = data.response.body.items;
+
+        if (!items || items.length === 0) {
+          document.getElementById('result').innerText = '사고사례가 없습니다.';
+          return;
+        }
+
+        let html = '';
+        items.forEach(item => {
+          html += `
+            <div>
+              <h3>${item.title}</h3>
+              <p>발생일자: ${item.occrrnc_dt}</p>
+              <p>업종: ${item.induty_nm}</p>
+              <p>사고유형: ${item.accident_type_nm}</p>
+              <p>사고개요: ${item.occrrnc_cntnt}</p>
+            </div>
+            <hr/>
+          `;
+        });
+
+        document.getElementById('result').innerHTML = html;
+      })
+      .catch(error => {
+        console.error("API 호출 실패:", error);
+        document.getElementById('result').innerText = '데이터를 불러올 수 없습니다.';
+      });
+  </script>
+</body>
+</html>
